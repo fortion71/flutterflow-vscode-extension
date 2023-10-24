@@ -8,19 +8,7 @@ require("dotenv").config({
 const codedownload_1 = require("./helperFunctions/codedownload");
 const gitHelpers_1 = require("./helperFunctions/gitHelpers");
 const pathHelpers_1 = require("./helperFunctions/pathHelpers");
-// config();
-// require("dotenv").config({
-//   path: path.join(__dirname, "ff.env"),
-// });
-// import * as dotenv from "dotenv";
-// import { config } from "dotenv";
-// config({
-//   // path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-// });
 function activate(context) {
-    // require("dotenv").config({
-    //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-    // });
     const syncWithAssets = vscode.commands.registerCommand("flutterflow-code-export.sync", async () => {
         (0, codedownload_1.downloadCode)({ withAssets: true });
     });

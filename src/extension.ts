@@ -12,22 +12,8 @@ import {
   getProjectFolder,
   getProjectWorkingDir,
 } from "./helperFunctions/pathHelpers";
-// config();
-
-// require("dotenv").config({
-//   path: path.join(__dirname, "ff.env"),
-// });
-// import * as dotenv from "dotenv";
-// import { config } from "dotenv";
-// config({
-//   // path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-// });
 
 export function activate(context: vscode.ExtensionContext) {
-  // require("dotenv").config({
-  //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-  // });
-
   const syncWithAssets = vscode.commands.registerCommand(
     "flutterflow-code-export.sync",
     async () => {

@@ -12,15 +12,10 @@ import {
   isGitinitalized,
   shouldStash,
 } from "./gitHelpers";
-// import { config as dotConfig } from "dotenv";
 import path = require("path");
 
 const downloadCode = async (config: { withAssets: boolean }) => {
   vscode.window.showInformationMessage("Starting flutterflow code download...");
-
-  // require("dotenv").config({
-  //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-  // });
 
   const token =
     process.env.FLUTTERFLOW_API_TOKEN ||
@@ -82,14 +77,28 @@ const downloadCode = async (config: { withAssets: boolean }) => {
     await execShell("dart pub global activate flutterflow_cli");
 
     const tmpPath = `${tmpDownloadFolder()}/${getProjectFolder()}`;
-    if (config.withAssets) {
-      await execShell(`rm -rf ${tmpPath}`);
-    } else {
-      // delete all files except the 'assets' folder in the tmp folder
-      await execShell(
-        `find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`
-      );
-    }
+    try {
+      if (os.platform() === "win32") {
+        // TODO: Test Win32 code
+        // if (config.withAssets) {
+        //   await execShell(
+        //     `rmdir /s /q ${getProjectWorkingDir()}\\${getProjectFolder()}`
+        //   );
+        // } else {
+        //   await execShell(
+        //     `for /d %i in (${getProjectWorkingDir()}\\${getProjectFolder()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"`
+        //   );
+        // }
+      } else {
+        if (config.withAssets) {
+          await execShell(`rm -rf ${tmpPath}`);
+        } else {
+          await execShell(
+            `find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`
+          );
+        }
+      }
+    } catch (err) {}
 
     if (config.withAssets === true) {
       await execShell(
@@ -113,15 +122,6 @@ const downloadCode = async (config: { withAssets: boolean }) => {
     }
 
     if (os.platform() === "win32") {
-      if (config.withAssets) {
-        await execShell(
-          `rmdir /s /q ${getProjectWorkingDir()}\\${getProjectFolder()}`
-        );
-      } else {
-        await execShell(
-          `for /d %i in (${getProjectWorkingDir()}\\${getProjectFolder()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"` // Not sure if this works
-        );
-      }
       await execShell(
         `xcopy /h /i /c /k /e /r /y  ${tmpDownloadFolder()}\\${getProjectFolder()} ${getProjectWorkingDir()}`
       );

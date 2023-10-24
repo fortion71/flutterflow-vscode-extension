@@ -6,13 +6,9 @@ const os = require("os");
 const executeShell_1 = require("./executeShell");
 const pathHelpers_1 = require("./pathHelpers");
 const gitHelpers_1 = require("./gitHelpers");
-// import { config as dotConfig } from "dotenv";
 const path = require("path");
 const downloadCode = async (config) => {
     vscode.window.showInformationMessage("Starting flutterflow code download...");
-    // require("dotenv").config({
-    //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
-    // });
     const token = process.env.FLUTTERFLOW_API_TOKEN ||
         vscode.workspace.getConfiguration("flutterflow").get("userApiToken");
     const projectId = process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
@@ -54,13 +50,29 @@ const downloadCode = async (config) => {
         }
         await (0, executeShell_1.execShell)("dart pub global activate flutterflow_cli");
         const tmpPath = `${(0, pathHelpers_1.tmpDownloadFolder)()}/${(0, pathHelpers_1.getProjectFolder)()}`;
-        if (config.withAssets) {
-            await (0, executeShell_1.execShell)(`rm -rf ${tmpPath}`);
+        try {
+            if (os.platform() === "win32") {
+                // TODO: Test Win32 code
+                // if (config.withAssets) {
+                //   await execShell(
+                //     `rmdir /s /q ${getProjectWorkingDir()}\\${getProjectFolder()}`
+                //   );
+                // } else {
+                //   await execShell(
+                //     `for /d %i in (${getProjectWorkingDir()}\\${getProjectFolder()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"`
+                //   );
+                // }
+            }
+            else {
+                if (config.withAssets) {
+                    await (0, executeShell_1.execShell)(`rm -rf ${tmpPath}`);
+                }
+                else {
+                    await (0, executeShell_1.execShell)(`find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`);
+                }
+            }
         }
-        else {
-            // delete all files except the 'assets' folder in the tmp folder
-            await (0, executeShell_1.execShell)(`find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`);
-        }
+        catch (err) { }
         if (config.withAssets === true) {
             await (0, executeShell_1.execShell)(`dart pub global run flutterflow_cli export-code --project ${projectId} --dest ${(0, pathHelpers_1.tmpDownloadFolder)()} --include-assets --token ${token}`);
         }
@@ -79,13 +91,6 @@ const downloadCode = async (config) => {
             }
         }
         if (os.platform() === "win32") {
-            if (config.withAssets) {
-                await (0, executeShell_1.execShell)(`rmdir /s /q ${(0, pathHelpers_1.getProjectWorkingDir)()}\\${(0, pathHelpers_1.getProjectFolder)()}`);
-            }
-            else {
-                await (0, executeShell_1.execShell)(`for /d %i in (${(0, pathHelpers_1.getProjectWorkingDir)()}\\${(0, pathHelpers_1.getProjectFolder)()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"` // Not sure if this works
-                );
-            }
             await (0, executeShell_1.execShell)(`xcopy /h /i /c /k /e /r /y  ${(0, pathHelpers_1.tmpDownloadFolder)()}\\${(0, pathHelpers_1.getProjectFolder)()} ${(0, pathHelpers_1.getProjectWorkingDir)()}`);
             console.log("Copied all files");
         }
