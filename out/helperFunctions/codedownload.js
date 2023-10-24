@@ -6,8 +6,13 @@ const os = require("os");
 const executeShell_1 = require("./executeShell");
 const pathHelpers_1 = require("./pathHelpers");
 const gitHelpers_1 = require("./gitHelpers");
+// import { config as dotConfig } from "dotenv";
+const path = require("path");
 const downloadCode = async (config) => {
     vscode.window.showInformationMessage("Starting flutterflow code download...");
+    // require("dotenv").config({
+    //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
+    // });
     const token = process.env.FLUTTERFLOW_API_TOKEN ||
         vscode.workspace.getConfiguration("flutterflow").get("userApiToken");
     const projectId = process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
@@ -25,8 +30,9 @@ const downloadCode = async (config) => {
     else {
         useGitFlag = useGit;
     }
-    const path = process.env.FLUTTERFLOW_BASE_DIR ||
-        vscode.workspace.getConfiguration("flutterflow").get("baseDirectory");
+    const baseDirPath = process.env.FLUTTERFLOW_BASE_DIR ||
+        vscode.workspace.getConfiguration("flutterflow").get("baseDirectory") ||
+        path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "..");
     try {
         if (token === "" || token === undefined) {
             vscode.window.showErrorMessage("Your FlutterFlow API token is not set. Please set in vscode settings.");
@@ -38,13 +44,24 @@ const downloadCode = async (config) => {
             const err = "FlutterFlow project ID not set";
             throw err;
         }
-        if (path === "" || path === undefined) {
+        if (baseDirPath === vscode.workspace.workspaceFolders[0].uri.fsPath) {
+            vscode.window.showInformationMessage(`Using the current workspace folder (${vscode.workspace.workspaceFolders[0].name}) as the base directory.`);
+        }
+        if (baseDirPath === "" || baseDirPath === undefined) {
             vscode.window.showErrorMessage("Your flutterflow working directory is not set. Please set in vscode settings.");
             const err = "FlutterFlow working directory not set";
             throw err;
         }
         await (0, executeShell_1.execShell)("dart pub global activate flutterflow_cli");
-        if (config.withAssets == true) {
+        const tmpPath = `${(0, pathHelpers_1.tmpDownloadFolder)()}/${(0, pathHelpers_1.getProjectFolder)()}`;
+        if (config.withAssets) {
+            await (0, executeShell_1.execShell)(`rm -rf ${tmpPath}`);
+        }
+        else {
+            // delete all files except the 'assets' folder in the tmp folder
+            await (0, executeShell_1.execShell)(`find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`);
+        }
+        if (config.withAssets === true) {
             await (0, executeShell_1.execShell)(`dart pub global run flutterflow_cli export-code --project ${projectId} --dest ${(0, pathHelpers_1.tmpDownloadFolder)()} --include-assets --token ${token}`);
         }
         else {
@@ -61,12 +78,19 @@ const downloadCode = async (config) => {
                 vscode.window.showErrorMessage(err);
             }
         }
-        if (os.platform() == "win32") {
+        if (os.platform() === "win32") {
+            if (config.withAssets) {
+                await (0, executeShell_1.execShell)(`rmdir /s /q ${(0, pathHelpers_1.getProjectWorkingDir)()}\\${(0, pathHelpers_1.getProjectFolder)()}`);
+            }
+            else {
+                await (0, executeShell_1.execShell)(`for /d %i in (${(0, pathHelpers_1.getProjectWorkingDir)()}\\${(0, pathHelpers_1.getProjectFolder)()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"` // Not sure if this works
+                );
+            }
             await (0, executeShell_1.execShell)(`xcopy /h /i /c /k /e /r /y  ${(0, pathHelpers_1.tmpDownloadFolder)()}\\${(0, pathHelpers_1.getProjectFolder)()} ${(0, pathHelpers_1.getProjectWorkingDir)()}`);
             console.log("Copied all files");
         }
         else {
-            await (0, executeShell_1.execShell)(`cp -rf "${(0, pathHelpers_1.tmpDownloadFolder)()}/${(0, pathHelpers_1.getProjectFolder)()}/" "${(0, pathHelpers_1.getProjectWorkingDir)()}"`);
+            await (0, executeShell_1.execShell)(`cp -rf "${tmpPath}/" "${(0, pathHelpers_1.getProjectWorkingDir)()}"`);
         }
         if (useGitFlag) {
             try {

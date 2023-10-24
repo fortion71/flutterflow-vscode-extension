@@ -3,6 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.tmpDownloadFolder = exports.getProjectFolder = exports.validatePathConfig = exports.getProjectWorkingDir = void 0;
 const os = require("os");
 const vscode = require("vscode");
+const path = require("path");
+require("dotenv").config({
+    path: path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "ff.env"),
+});
 const projectId = process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
     vscode.workspace
         .getConfiguration("flutterflow")
@@ -10,7 +14,8 @@ const projectId = process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
 const baseDir = process.env.FLUTTERFLOW_BASE_DIR ||
     vscode.workspace
         .getConfiguration("flutterflow")
-        .get("baseDirectory");
+        .get("baseDirectory") ||
+    path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "..");
 function validatePathConfig() {
     if (projectId === "" || projectId === undefined) {
         vscode.window.showErrorMessage("Your flutterflow project ID not set. Please set Please set in vscode settings.");
@@ -27,7 +32,7 @@ function getProjectWorkingDir() {
     if (!validatePathConfig()) {
         return undefined;
     }
-    if (os.platform() == "win32") {
+    if (os.platform() === "win32") {
         console.log(`getProjectWorkingDir : ${baseDir}\\${getProjectFolder()} `);
         return `${baseDir}\\${getProjectFolder()}`;
     }
@@ -38,7 +43,7 @@ function getProjectWorkingDir() {
 }
 exports.getProjectWorkingDir = getProjectWorkingDir;
 function tmpDownloadFolder() {
-    if (os.platform() == "win32") {
+    if (os.platform() === "win32") {
         return `%TMP%\\flutterflow`;
     }
     else {

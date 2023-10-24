@@ -1,5 +1,12 @@
 import * as os from "os";
 import * as vscode from "vscode";
+import path = require("path");
+require("dotenv").config({
+  path: path.join(
+    vscode.workspace.workspaceFolders![0].uri.fsPath,
+    "ff.env"
+  ),
+});
 
 const projectId =
   process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
@@ -11,7 +18,8 @@ const baseDir =
   process.env.FLUTTERFLOW_BASE_DIR ||
   (vscode.workspace
     .getConfiguration("flutterflow")
-    .get("baseDirectory") as string);
+    .get("baseDirectory") as string) ||
+  path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "..");
 
 function validatePathConfig(): boolean {
   if (projectId === "" || projectId === undefined) {
@@ -34,7 +42,7 @@ function getProjectWorkingDir(): string | undefined {
     return undefined;
   }
 
-  if (os.platform() == "win32") {
+  if (os.platform() === "win32") {
     console.log(`getProjectWorkingDir : ${baseDir}\\${getProjectFolder()} `);
     return `${baseDir}\\${getProjectFolder()}`;
   } else {
@@ -44,7 +52,7 @@ function getProjectWorkingDir(): string | undefined {
 }
 
 function tmpDownloadFolder(): string {
-  if (os.platform() == "win32") {
+  if (os.platform() === "win32") {
     return `%TMP%\\flutterflow`;
   } else {
     return `${os.tmpdir()}/flutterflow`;

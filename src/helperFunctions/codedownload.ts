@@ -12,9 +12,16 @@ import {
   isGitinitalized,
   shouldStash,
 } from "./gitHelpers";
+// import { config as dotConfig } from "dotenv";
+import path = require("path");
 
 const downloadCode = async (config: { withAssets: boolean }) => {
   vscode.window.showInformationMessage("Starting flutterflow code download...");
+
+  // require("dotenv").config({
+  //   path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
+  // });
+
   const token =
     process.env.FLUTTERFLOW_API_TOKEN ||
     vscode.workspace.getConfiguration("flutterflow").get("userApiToken");
@@ -38,9 +45,11 @@ const downloadCode = async (config: { withAssets: boolean }) => {
     useGitFlag = useGit;
   }
 
-  const path =
+  const baseDirPath =
     process.env.FLUTTERFLOW_BASE_DIR ||
-    vscode.workspace.getConfiguration("flutterflow").get("baseDirectory");
+    vscode.workspace.getConfiguration("flutterflow").get("baseDirectory") ||
+    path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "..");
+
   try {
     if (token === "" || token === undefined) {
       vscode.window.showErrorMessage(
@@ -56,7 +65,14 @@ const downloadCode = async (config: { withAssets: boolean }) => {
       const err = "FlutterFlow project ID not set";
       throw err;
     }
-    if (path === "" || path === undefined) {
+    if (baseDirPath === vscode.workspace.workspaceFolders![0].uri.fsPath) {
+      vscode.window.showInformationMessage(
+        `Using the current workspace folder (${
+          vscode.workspace.workspaceFolders![0].name
+        }) as the base directory.`
+      );
+    }
+    if (baseDirPath === "" || baseDirPath === undefined) {
       vscode.window.showErrorMessage(
         "Your flutterflow working directory is not set. Please set in vscode settings."
       );
@@ -65,7 +81,17 @@ const downloadCode = async (config: { withAssets: boolean }) => {
     }
     await execShell("dart pub global activate flutterflow_cli");
 
-    if (config.withAssets == true) {
+    const tmpPath = `${tmpDownloadFolder()}/${getProjectFolder()}`;
+    if (config.withAssets) {
+      await execShell(`rm -rf ${tmpPath}`);
+    } else {
+      // delete all files except the 'assets' folder in the tmp folder
+      await execShell(
+        `find ${tmpPath} -mindepth 1 -maxdepth 1 ! -name assets -exec rm -rf {} +`
+      );
+    }
+
+    if (config.withAssets === true) {
       await execShell(
         `dart pub global run flutterflow_cli export-code --project ${projectId} --dest ${tmpDownloadFolder()} --include-assets --token ${token}`
       );
@@ -86,15 +112,22 @@ const downloadCode = async (config: { withAssets: boolean }) => {
       }
     }
 
-    if (os.platform() == "win32") {
+    if (os.platform() === "win32") {
+      if (config.withAssets) {
+        await execShell(
+          `rmdir /s /q ${getProjectWorkingDir()}\\${getProjectFolder()}`
+        );
+      } else {
+        await execShell(
+          `for /d %i in (${getProjectWorkingDir()}\\${getProjectFolder()}\\*) do @if not "%~nxi" == "assets" rd /s /q "%i"` // Not sure if this works
+        );
+      }
       await execShell(
         `xcopy /h /i /c /k /e /r /y  ${tmpDownloadFolder()}\\${getProjectFolder()} ${getProjectWorkingDir()}`
       );
       console.log("Copied all files");
     } else {
-      await execShell(
-        `cp -rf "${tmpDownloadFolder()}/${getProjectFolder()}/" "${getProjectWorkingDir()}"`
-      );
+      await execShell(`cp -rf "${tmpPath}/" "${getProjectWorkingDir()}"`);
     }
 
     if (useGitFlag) {
