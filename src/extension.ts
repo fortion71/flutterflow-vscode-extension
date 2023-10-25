@@ -17,14 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
   const syncWithAssets = vscode.commands.registerCommand(
     "flutterflow-code-export.sync",
     async () => {
-      downloadCode({ withAssets: true });
+      await downloadCode({ withAssets: true });
     }
   );
 
   const syncWithoutAssets = vscode.commands.registerCommand(
     "flutterflow-code-export.syncFast",
     async () => {
-      downloadCode({ withAssets: false });
+      await downloadCode({ withAssets: false });
     }
   );
 

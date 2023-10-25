@@ -10,10 +10,10 @@ const gitHelpers_1 = require("./helperFunctions/gitHelpers");
 const pathHelpers_1 = require("./helperFunctions/pathHelpers");
 function activate(context) {
     const syncWithAssets = vscode.commands.registerCommand("flutterflow-code-export.sync", async () => {
-        (0, codedownload_1.downloadCode)({ withAssets: true });
+        await (0, codedownload_1.downloadCode)({ withAssets: true });
     });
     const syncWithoutAssets = vscode.commands.registerCommand("flutterflow-code-export.syncFast", async () => {
-        (0, codedownload_1.downloadCode)({ withAssets: false });
+        await (0, codedownload_1.downloadCode)({ withAssets: false });
     });
     let gitInitialize = vscode.commands.registerCommand("flutterflow-code-export.gitInitalize", async () => {
         console.log(await (0, gitHelpers_1.initalizeGit)());
