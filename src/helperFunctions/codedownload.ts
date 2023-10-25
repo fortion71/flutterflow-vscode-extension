@@ -1,11 +1,7 @@
 import * as vscode from "vscode";
 import * as os from "os";
 import { execShell } from "./executeShell";
-import {
-  getProjectFolder,
-  getProjectWorkingDir,
-  tmpDownloadFolder,
-} from "./pathHelpers";
+import { getProjectFolder, tmpDownloadFolder } from "./pathHelpers";
 import {
   gitStash,
   initalizeGit,
@@ -43,7 +39,7 @@ const downloadCode = async (config: { withAssets: boolean }) => {
   const baseDirPath =
     process.env.FLUTTERFLOW_BASE_DIR ||
     vscode.workspace.getConfiguration("flutterflow").get("baseDirectory") ||
-    path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "..");
+    vscode.workspace.workspaceFolders![0].uri.fsPath;
 
   try {
     if (token === "" || token === undefined) {
@@ -59,13 +55,6 @@ const downloadCode = async (config: { withAssets: boolean }) => {
       );
       const err = "FlutterFlow project ID not set";
       throw err;
-    }
-    if (baseDirPath === vscode.workspace.workspaceFolders![0].uri.fsPath) {
-      vscode.window.showInformationMessage(
-        `Using the current workspace folder (${
-          vscode.workspace.workspaceFolders![0].name
-        }) as the base directory.`
-      );
     }
     if (baseDirPath === "" || baseDirPath === undefined) {
       vscode.window.showErrorMessage(
@@ -123,11 +112,11 @@ const downloadCode = async (config: { withAssets: boolean }) => {
 
     if (os.platform() === "win32") {
       await execShell(
-        `xcopy /h /i /c /k /e /r /y  ${tmpDownloadFolder()}\\${getProjectFolder()} ${getProjectWorkingDir()}`
+        `xcopy /h /i /c /k /e /r /y  ${tmpDownloadFolder()}\\${getProjectFolder()} ${baseDirPath}`
       );
       console.log("Copied all files");
     } else {
-      await execShell(`cp -rf "${tmpPath}/" "${getProjectWorkingDir()}"`);
+      await execShell(`cp -rf "${tmpPath}/" "${baseDirPath}"`);
     }
 
     if (useGitFlag) {
@@ -141,10 +130,6 @@ const downloadCode = async (config: { withAssets: boolean }) => {
         );
         vscode.window.showErrorMessage(err as string);
       }
-    }
-    if (openWindow === true) {
-      const folderUri = vscode.Uri.file(getProjectWorkingDir()!);
-      vscode.commands.executeCommand(`vscode.openFolder`, folderUri);
     }
 
     vscode.window.showInformationMessage("Code download successful");

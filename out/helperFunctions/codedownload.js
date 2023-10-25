@@ -6,7 +6,6 @@ const os = require("os");
 const executeShell_1 = require("./executeShell");
 const pathHelpers_1 = require("./pathHelpers");
 const gitHelpers_1 = require("./gitHelpers");
-const path = require("path");
 const downloadCode = async (config) => {
     vscode.window.showInformationMessage("Starting flutterflow code download...");
     const token = process.env.FLUTTERFLOW_API_TOKEN ||
@@ -28,7 +27,7 @@ const downloadCode = async (config) => {
     }
     const baseDirPath = process.env.FLUTTERFLOW_BASE_DIR ||
         vscode.workspace.getConfiguration("flutterflow").get("baseDirectory") ||
-        path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "..");
+        vscode.workspace.workspaceFolders[0].uri.fsPath;
     try {
         if (token === "" || token === undefined) {
             vscode.window.showErrorMessage("Your FlutterFlow API token is not set. Please set in vscode settings.");
@@ -39,9 +38,6 @@ const downloadCode = async (config) => {
             vscode.window.showErrorMessage("Your flutterflow project ID not set. Please set Please set in vscode settings.");
             const err = "FlutterFlow project ID not set";
             throw err;
-        }
-        if (baseDirPath === vscode.workspace.workspaceFolders[0].uri.fsPath) {
-            vscode.window.showInformationMessage(`Using the current workspace folder (${vscode.workspace.workspaceFolders[0].name}) as the base directory.`);
         }
         if (baseDirPath === "" || baseDirPath === undefined) {
             vscode.window.showErrorMessage("Your flutterflow working directory is not set. Please set in vscode settings.");
@@ -91,11 +87,11 @@ const downloadCode = async (config) => {
             }
         }
         if (os.platform() === "win32") {
-            await (0, executeShell_1.execShell)(`xcopy /h /i /c /k /e /r /y  ${(0, pathHelpers_1.tmpDownloadFolder)()}\\${(0, pathHelpers_1.getProjectFolder)()} ${(0, pathHelpers_1.getProjectWorkingDir)()}`);
+            await (0, executeShell_1.execShell)(`xcopy /h /i /c /k /e /r /y  ${(0, pathHelpers_1.tmpDownloadFolder)()}\\${(0, pathHelpers_1.getProjectFolder)()} ${baseDirPath}`);
             console.log("Copied all files");
         }
         else {
-            await (0, executeShell_1.execShell)(`cp -rf "${tmpPath}/" "${(0, pathHelpers_1.getProjectWorkingDir)()}"`);
+            await (0, executeShell_1.execShell)(`cp -rf "${tmpPath}/" "${baseDirPath}"`);
         }
         if (useGitFlag) {
             try {
@@ -107,10 +103,6 @@ const downloadCode = async (config) => {
                 vscode.window.showErrorMessage("Could initialize git in project directory");
                 vscode.window.showErrorMessage(err);
             }
-        }
-        if (openWindow === true) {
-            const folderUri = vscode.Uri.file((0, pathHelpers_1.getProjectWorkingDir)());
-            vscode.commands.executeCommand(`vscode.openFolder`, folderUri);
         }
         vscode.window.showInformationMessage("Code download successful");
     }
