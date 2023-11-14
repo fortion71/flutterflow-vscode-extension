@@ -64,7 +64,7 @@ function getProjectFolder(): string | undefined {
     return undefined;
   }
   const re = /-/gi;
-  const folderName = projectId
+  const folderName = projectId // TODO: Fix bug where this doesn't work if the project name is changed after initial creation (project id is static, so doesn't get updated)
     .replace(re, "_")
     .slice(0, projectId.lastIndexOf("-"));
   return folderName;
