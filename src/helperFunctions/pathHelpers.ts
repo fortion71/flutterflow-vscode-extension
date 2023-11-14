@@ -2,10 +2,7 @@ import * as os from "os";
 import * as vscode from "vscode";
 import path = require("path");
 require("dotenv").config({
-  path: path.join(
-    vscode.workspace.workspaceFolders![0].uri.fsPath,
-    "ff.env"
-  ),
+  path: path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, "ff.env"),
 });
 
 const projectId =
@@ -63,11 +60,22 @@ function getProjectFolder(): string | undefined {
   if (!validatePathConfig()) {
     return undefined;
   }
+
+  if (process.env.FLUTTERFLOW_PROJECT_NAME) {
+    // convert a string like "RecommendSocialMedia" to "recommend_social_media"
+    const re = /([A-Z])/g;
+    const folderName = process.env.FLUTTERFLOW_PROJECT_NAME.replace(re, "_$1")
+      .toLowerCase()
+      .slice(1);
+
+    return folderName;
+  }
+
   const re = /-/gi;
-  const folderName = projectId // TODO: Fix bug where this doesn't work if the project name is changed after initial creation (project id is static, so doesn't get updated)
+  return projectId // TODO: Need to fix bug where this doesn't work if the project name is changed after initial creation (project id is static, so doesn't get updated). For now, just allowing FLUTTERFLOW_PROJECT_NAME to override projectId
     .replace(re, "_")
     .slice(0, projectId.lastIndexOf("-"));
-  return folderName;
+  // return folderName;
 }
 
 export {

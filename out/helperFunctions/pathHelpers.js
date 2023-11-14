@@ -55,11 +55,19 @@ function getProjectFolder() {
     if (!validatePathConfig()) {
         return undefined;
     }
+    if (process.env.FLUTTERFLOW_PROJECT_NAME) {
+        // convert a string like "RecommendSocialMedia" to "recommend_social_media"
+        const re = /([A-Z])/g;
+        const folderName = process.env.FLUTTERFLOW_PROJECT_NAME.replace(re, "_$1")
+            .toLowerCase()
+            .slice(1);
+        return folderName;
+    }
     const re = /-/gi;
-    const folderName = projectId
+    return projectId // TODO: Need to fix bug where this doesn't work if the project name is changed after initial creation (project id is static, so doesn't get updated). For now, just allowing FLUTTERFLOW_PROJECT_NAME to override projectId
         .replace(re, "_")
         .slice(0, projectId.lastIndexOf("-"));
-    return folderName;
+    // return folderName;
 }
 exports.getProjectFolder = getProjectFolder;
 //# sourceMappingURL=pathHelpers.js.map
