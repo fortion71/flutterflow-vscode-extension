@@ -11,7 +11,11 @@ import {
 import path = require("path");
 
 const downloadCode = async (config: { withAssets: boolean }) => {
-  vscode.window.showInformationMessage("Starting flutterflow code download...");
+  vscode.window.showInformationMessage(
+    "Starting flutterflow code download " +
+      (config.withAssets ? "w/" : "w/o") +
+      " assets..."
+  );
 
   const token =
     process.env.FLUTTERFLOW_API_TOKEN ||

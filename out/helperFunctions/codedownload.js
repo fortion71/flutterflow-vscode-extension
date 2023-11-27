@@ -7,7 +7,9 @@ const executeShell_1 = require("./executeShell");
 const pathHelpers_1 = require("./pathHelpers");
 const gitHelpers_1 = require("./gitHelpers");
 const downloadCode = async (config) => {
-    vscode.window.showInformationMessage("Starting flutterflow code download...");
+    vscode.window.showInformationMessage("Starting flutterflow code download " +
+        (config.withAssets ? "w/" : "w/o") +
+        " assets...");
     const token = process.env.FLUTTERFLOW_API_TOKEN ||
         vscode.workspace.getConfiguration("flutterflow").get("userApiToken");
     const projectId = process.env.FLUTTERFLOW_ACTIVE_PROJECT_ID ||
