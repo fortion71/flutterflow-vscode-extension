@@ -5,7 +5,7 @@ const vscode = require("vscode");
 const executeShell_1 = require("./executeShell");
 const pathHelpers_1 = require("./pathHelpers");
 const downloadCode = async (config) => {
-    vscode.window.showInformationMessage("NEW1Starting flutterflow code download " +
+    vscode.window.showInformationMessage("Starting flutterflow code download " +
         (config.withAssets ? "w/" : "w/o") +
         " assets...");
     const token = process.env.FLUTTERFLOW_API_TOKEN ||

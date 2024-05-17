@@ -1,3 +1,8 @@
+# Fork Changes
+
+- [Bugfix] Awaits `downloadCode` function
+- [Change] Uses `ff.env` instead of extension settings
+
 # FlutterFlow Code Export
 
 Simple plugin to easily download your flutterflow project code.

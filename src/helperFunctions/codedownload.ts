@@ -4,7 +4,7 @@ import { getProjectWorkingDir } from "./pathHelpers";
 
 const downloadCode = async (config: { withAssets: boolean }) => {
   vscode.window.showInformationMessage(
-    "NEW1Starting flutterflow code download " +
+    "Starting flutterflow code download " +
       (config.withAssets ? "w/" : "w/o") +
       " assets..."
   );
