@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 require("dotenv").config({
   path: require("path").join(
     vscode.workspace.workspaceFolders![0].uri.fsPath,
-    "ff.env"
+    "flutterflow.env"
   ),
 });
 import { downloadCode } from "./helperFunctions/codedownload";

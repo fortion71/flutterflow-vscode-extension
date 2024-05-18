@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 require("dotenv").config({
-    path: require("path").join(vscode.workspace.workspaceFolders[0].uri.fsPath, "ff.env"),
+    path: require("path").join(vscode.workspace.workspaceFolders[0].uri.fsPath, "flutterflow.env"),
 });
 const codedownload_1 = require("./helperFunctions/codedownload");
 const pathHelpers_1 = require("./helperFunctions/pathHelpers");
